@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -75,7 +76,11 @@ func processFile(filename string) error {
 
 	header := make([]byte, 512)
 	n, _ := f.Read(header)
-	f.Seek(0, 0) // Reset read pointer if possible, stdin might fail but that's ok for now
+
+	var r io.Reader = f
+	if _, err := f.Seek(0, 0); err != nil {
+		r = io.MultiReader(bytes.NewReader(header[:n]), f)
+	}
 
 	mime := detect.Pipeline(header[:n], filename)
 	ext := filepath.Ext(filename)
@@ -91,11 +96,11 @@ func processFile(filename string) error {
 	defer w.Close()
 
 	if opts.Flat {
-		_, err = io.Copy(w, f)
+		_, err = io.Copy(w, r)
 		return err
 	}
 
-	return handler.Render(w, f, meta, opts)
+	return handler.Render(w, r, meta, opts)
 }
 
 func Execute() {
