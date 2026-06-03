@@ -27,6 +27,9 @@ var rootCmd = &cobra.Command{
 	Use:   "asd [file...]",
 	Short: "A smart universal file viewer",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if opts.Theme == "" || opts.Theme == "auto" {
+			opts.Theme = "dracula"
+		}
 		if len(args) == 0 {
 			stat, _ := os.Stdin.Stat()
 			if (stat.Mode() & os.ModeCharDevice) != 0 {
