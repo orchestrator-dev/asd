@@ -30,7 +30,7 @@ When you output more text than your terminal can fit, `asd` instantly buffers in
 - **Markdown**: Fully styled Markdown rendering using [Glamour](https://github.com/charmbracelet/glamour).
 - **Archives**: Explores zip, tar, tar.gz, 7z, and rar as interactive directory trees showing uncompressed stats.
 - **Office Docs & PDF**: Automatically extracts and parses text from DOCX, XLSX, PPTX, ODT, and PDFs without you needing to extract them manually!
-- **Media**: Peeks into Image, Audio, and Video files to reveal EXIF, track metadata, resolutions, codecs, and durations.
+- **Media**: Peeks into Audio and Video files to reveal track metadata, codecs, and durations. **Images** are rendered natively in your terminal! Enjoy pixel-perfect inline images on modern terminals like iTerm2, WezTerm, and Ghostty, or elegantly scaled true-color ANSI blocks on all standard terminals.
 - **Security**: Displays X.509 PEM/CRT properties and SSH Key parameters effortlessly.
 - **Directories**: View styled `ls -la` directory trees and resolve symlinks.
 - **Hex Dump**: Safely view unknown binaries with built-in hex-dumping.
