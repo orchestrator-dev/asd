@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	_ "asd/internal/testutil"
+
 	"github.com/stretchr/testify/require"
 )
 

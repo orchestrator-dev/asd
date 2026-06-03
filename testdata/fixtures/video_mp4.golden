@@ -1,0 +1,9 @@
+File: test.mp4
+Size: 12 bytes
+Codec: h264
+Resolution: 1920x1080
+FPS: 30000/1001
+Duration: 120.5
+Bitrate: 500000
+
+Play hint: mpv test.mp4

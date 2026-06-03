@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	opts     handlers.Options
+	opts      handlers.Options
 	globalReg *registry.Registry
 )
 
@@ -85,6 +85,7 @@ func processFile(filename string) error {
 	}
 
 	w := render.NewWriter(os.Stdout, opts)
+	defer w.Close()
 
 	if opts.Flat {
 		_, err = io.Copy(w, f)

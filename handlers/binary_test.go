@@ -14,10 +14,10 @@ import (
 
 func TestBinaryHandler_Render(t *testing.T) {
 	tests := []struct {
-		name     string
-		fixture  string
-		opts     handlers.Options
-		golden   string
+		name    string
+		fixture string
+		opts    handlers.Options
+		golden  string
 	}{
 		{
 			name:    "unknown binary",

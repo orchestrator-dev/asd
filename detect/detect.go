@@ -14,7 +14,7 @@ func Pipeline(header []byte, filename string) string {
 	}
 
 	bestMime := "application/octet-stream"
-	
+
 	for _, d := range detectors {
 		mime, conf := d.Detect(header, filename)
 		if conf == "high" && mime != "" {

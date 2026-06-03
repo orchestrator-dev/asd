@@ -1,0 +1,8 @@
+┌───────┬───┬────────┬────────────────────────────────────────┐
+│Name   │Age│Job     │Description                             │
+├───────┼───┼────────┼────────────────────────────────────────┤
+│Alice  │30 │Engineer│Writes code all day                     │
+│Bob    │35 │Manager │Manages people, processes, and a lot ...│
+│Charlie│25 │Designer│Makes things look pretty                │
+└───────┴───┴────────┴────────────────────────────────────────┘
+4 rows x 4 columns

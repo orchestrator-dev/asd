@@ -13,7 +13,7 @@ var update = flag.Bool("update", false, "update golden files")
 
 func AssertGolden(t *testing.T, name string, actual []byte) {
 	t.Helper()
-	goldenPath := filepath.Join("..", "..", "testdata", name+".golden")
+	goldenPath := filepath.Join("..", "testdata", name+".golden")
 
 	if *update {
 		err := os.MkdirAll(filepath.Dir(goldenPath), 0755)
