@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	excelize excelize "github.com/xuri/excelize/v2"
+	excelize "github.com/xuri/excelize/v2"
 )
 
 type OfficeHandler struct{}
@@ -81,7 +81,9 @@ func (h *OfficeHandler) renderDocx(w io.Writer, data []byte) error {
 
 	decoder := xml.NewDecoder(rc)
 	var paraBuf strings.Builder
+	_ = paraBuf
 	var linesCount int
+	_ = linesCount
 
 	for {
 		t, err := decoder.Token()
@@ -107,7 +109,7 @@ func (h *OfficeHandler) renderDocx(w io.Writer, data []byte) error {
 				paraBuf.Reset()
 			}
 		case xml.CharData:
-			paraBuf.Write([]byte(se))
+			_, _ = paraBuf.Write([]byte(se))
 		}
 	}
 	return nil
@@ -163,6 +165,7 @@ func (h *OfficeHandler) renderPptx(w io.Writer, data []byte) error {
 		fmt.Fprintf(w, "--- %s ---\n", f.Name)
 		decoder := xml.NewDecoder(rc)
 		var paraBuf strings.Builder
+	_ = paraBuf
 		for {
 			t, err := decoder.Token()
 			if err == io.EOF {
@@ -182,7 +185,7 @@ func (h *OfficeHandler) renderPptx(w io.Writer, data []byte) error {
 					paraBuf.Reset()
 				}
 			case xml.CharData:
-				paraBuf.Write([]byte(se))
+				_, _ = paraBuf.Write([]byte(se))
 			}
 		}
 		rc.Close()
@@ -216,6 +219,7 @@ func (h *OfficeHandler) renderOdf(w io.Writer, data []byte) error {
 
 	decoder := xml.NewDecoder(rc)
 	var paraBuf strings.Builder
+	_ = paraBuf
 	for {
 		t, err := decoder.Token()
 		if err == io.EOF {
@@ -235,7 +239,7 @@ func (h *OfficeHandler) renderOdf(w io.Writer, data []byte) error {
 				paraBuf.Reset()
 			}
 		case xml.CharData:
-			paraBuf.Write([]byte(se))
+			_, _ = paraBuf.Write([]byte(se))
 		}
 	}
 	return nil
