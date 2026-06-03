@@ -1,11 +1,10 @@
 package handlers
 
 import (
-	"github.com/pelletier/go-toml/v2"
-
 	"fmt"
 	"io"
 
+	"github.com/BurntSushi/toml"
 	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/alecthomas/chroma/v2/styles"

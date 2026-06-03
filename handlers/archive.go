@@ -38,7 +38,6 @@ func (h *ArchiveHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts Op
 
 	ext := strings.ToLower(filepath.Ext(meta.Name))
 
-	// check for tar.*
 	nameLower := strings.ToLower(meta.Name)
 	if strings.HasSuffix(nameLower, ".tar.gz") || ext == ".tgz" {
 		return h.handleTarGz(w, r)
@@ -58,7 +57,6 @@ func (h *ArchiveHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts Op
 	case ".gz":
 		return h.handleGz(w, r, meta)
 	case ".bz2":
-		// Not specified in prompt, but maybe just uncompressed size
 		return fmt.Errorf("plain .bz2 listing not supported")
 	case ".xz":
 		return fmt.Errorf("plain .xz listing not supported")
@@ -94,7 +92,7 @@ func (h *ArchiveHandler) handleZip(w io.Writer, r io.Reader, meta FileMeta) erro
 		total += f.UncompressedSize64
 		fmt.Fprintf(w, "%s %12d %s %s\n", f.Mode(), f.UncompressedSize64, f.Modified.Format("2006-01-02 15:04:05"), f.Name)
 	}
-	fmt.Fprintf(w, "\n%d files, total uncompressed size: %d bytes\n", count, total)
+	fmt.Fprintf(w, "\n%d files, total uncompressed size: %d\n", count, total)
 	return nil
 }
 
@@ -119,7 +117,7 @@ func (h *ArchiveHandler) handleTarReader(w io.Writer, tr *tar.Reader) error {
 		}
 		fmt.Fprintf(w, "%s %12d %s %s\n", mode, hdr.Size, modTime, hdr.Name)
 	}
-	fmt.Fprintf(w, "\n%d files, total uncompressed size: %d bytes\n", count, total)
+	fmt.Fprintf(w, "\n%d files, total uncompressed size: %d\n", count, total)
 	return nil
 }
 

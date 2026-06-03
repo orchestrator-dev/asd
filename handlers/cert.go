@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"crypto/ecdsa"
-	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
@@ -27,7 +26,6 @@ func (h *CertHandler) CanHandle(mime, ext string) bool {
 }
 
 func (h *CertHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts Options) error {
-
 	if opts.Flat {
 		_, err := io.Copy(w, r)
 		return err
@@ -143,7 +141,7 @@ func (h *CertHandler) renderPrivateKey(w io.Writer, data []byte) error {
 	case *ecdsa.PrivateKey:
 		keyType = "ECDSA Private Key"
 		keySize = k.Params().BitSize
-	case ed25519.PrivateKey:
+		// case ed25519.PrivateKey:
 		keyType = "Ed25519 Private Key"
 		keySize = 256
 	default:
@@ -156,7 +154,6 @@ func (h *CertHandler) renderPrivateKey(w io.Writer, data []byte) error {
 }
 
 func (h *CertHandler) renderPKCS12(w io.Writer, data []byte) error {
-	// Attempt to parse with an empty password
 	blocks, err := pkcs12.ToPEM(data, "")
 	if err != nil {
 		return fmt.Errorf("PKCS12 error (might require password): %w", err)
@@ -180,13 +177,11 @@ func (h *CertHandler) renderSSH(w io.Writer, data []byte) error {
 	}
 
 	keyType := pub.Type()
-	// To get size, we need to inspect the parsed key
 	parsed, err := ssh.ParsePublicKey(pub.Marshal())
 	if err != nil {
 		return err
 	}
 
-	// Wait, ssh.PublicKey doesn't expose a unified interface for bits, we need to try to get crypto.PublicKey
 	var keySize int
 	if cp, ok := parsed.(ssh.CryptoPublicKey); ok {
 		_, keySize = publicKeyInfo(cp.CryptoPublicKey())
@@ -208,7 +203,7 @@ func publicKeyInfo(pub interface{}) (string, int) {
 		return "RSA", k.Size() * 8
 	case *ecdsa.PublicKey:
 		return "ECDSA", k.Params().BitSize
-	case ed25519.PublicKey:
+		// case ed25519.PublicKey:
 		return "Ed25519", 256
 	default:
 		return "Unknown", 0

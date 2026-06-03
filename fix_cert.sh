@@ -1,0 +1,29 @@
+cat << 'INNER' > patch.txt
+	switch k := key.(type) {
+	case *rsa.PrivateKey:
+		keyType = "RSA Private Key"
+		keySize = k.Size() * 8
+	case *ecdsa.PrivateKey:
+		keyType = "ECDSA Private Key"
+		keySize = k.Params().BitSize
+	case ed25519.PrivateKey:
+		keyType = "Ed25519 Private Key"
+		keySize = 256
+	default:
+		keyType = "Unknown Private Key"
+	}
+INNER
+sed -i -e '/switch k := key.(type) {/,/}/c\
+	switch k := key.(type) {\
+	case *rsa.PrivateKey:\
+		keyType = "RSA Private Key"\
+		keySize = k.Size() * 8\
+	case *ecdsa.PrivateKey:\
+		keyType = "ECDSA Private Key"\
+		keySize = k.Params().BitSize\
+	case ed25519.PrivateKey:\
+		keyType = "Ed25519 Private Key"\
+		keySize = 256\
+	default:\
+		keyType = "Unknown Private Key"\
+	}' handlers/cert.go

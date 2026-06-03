@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/user"
 	"path/filepath"
-	"syscall"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -27,9 +25,6 @@ func (h *DirectoryHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts 
 	if err != nil {
 		return err
 	}
-
-	// Re-add . and .. if we want ls -la behavior?
-	// The prompt said "Styled ls -la tree"
 
 	dirInfo, err := os.Stat(dir)
 	if err == nil {
@@ -62,27 +57,17 @@ func (h *DirectoryHandler) printEntry(w io.Writer, info os.FileInfo, name, prefi
 	modTime := info.ModTime().Format("Jan 02 15:04")
 
 	var uname, gname string
-	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-		if u, err := user.LookupId(fmt.Sprintf("%d", stat.Uid)); err == nil {
-			uname = u.Username
-		} else {
-			uname = fmt.Sprintf("%d", stat.Uid)
-		}
-		if g, err := user.LookupGroupId(fmt.Sprintf("%d", stat.Gid)); err == nil {
-			gname = g.Name
-		} else {
-			gname = fmt.Sprintf("%d", stat.Gid)
-		}
-	}
+	uname = "-"
+	gname = "-"
 
 	displayName := name
 	if !opts.NoColor {
 		if mode.IsDir() {
-			displayName = lipgloss.NewStyle().Foreground(lipgloss.Color("12")).Render(name) // Blue
+			displayName = lipgloss.NewStyle().Foreground(lipgloss.Color("12")).Render(name)
 		} else if mode&os.ModeSymlink != 0 {
-			displayName = lipgloss.NewStyle().Foreground(lipgloss.Color("14")).Render(name) // Cyan
+			displayName = lipgloss.NewStyle().Foreground(lipgloss.Color("14")).Render(name)
 		} else if mode&0111 != 0 {
-			displayName = lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Render(name) // Green
+			displayName = lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Render(name)
 		}
 	}
 

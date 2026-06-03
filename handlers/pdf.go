@@ -27,7 +27,6 @@ func (h *PDFHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts Option
 
 	rs, ok := r.(io.ReadSeeker)
 	if !ok {
-		// Fallback for readers that can't seek
 		f, err := os.CreateTemp("", "asd-pdf-*")
 		if err != nil {
 			return err
@@ -73,7 +72,6 @@ func (h *PDFHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts Option
 		return err
 	}
 
-	// We try to extract page 1 content
 	err = api.ExtractContent(rs, tempDir, "out", []string{"1"}, conf)
 	if err != nil {
 		fmt.Fprintf(w, "Failed to extract content: %v\n", err)

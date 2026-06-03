@@ -23,11 +23,9 @@ func (h *SymlinkHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts Op
 
 	fmt.Fprintf(w, "-> %s\n", target)
 
-	// Since we can't access globalReg, we can do a basic check and use text/binary handlers
 	header := make([]byte, 512)
 	n, _ := r.Read(header)
 
-	// Reset reader? r is usually a file, we can't seek it if it's io.Reader without interface cast
 	if seeker, ok := r.(io.Seeker); ok {
 		seeker.Seek(0, 0)
 	}
@@ -35,7 +33,6 @@ func (h *SymlinkHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts Op
 	targetExt := filepath.Ext(target)
 	mime := detect.Pipeline(header[:n], target)
 
-	// Simple fallback dispatch
 	var handler Handler
 	if mime == "inode/directory" {
 		handler = &DirectoryHandler{}

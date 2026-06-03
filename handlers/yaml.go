@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"gopkg.in/yaml.v3"
-
 	"bytes"
 	"fmt"
 	"io"
@@ -10,6 +8,7 @@ import (
 	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/alecthomas/chroma/v2/styles"
+	"gopkg.in/yaml.v3"
 
 	"asd/errors"
 )

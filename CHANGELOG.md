@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.1 (2026-06-03)
+
+- Fix cross-platform compilation failure in directory handler due to OS-specific syscalls.
+
 ## v0.8.0 (2026-06-03)
 
 - Implemented comprehensive handler registry for 20+ file formats.
