@@ -13,6 +13,7 @@ import (
 
 	"asd/exec"
 
+	"golang.org/x/image/draw"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
 	_ "golang.org/x/image/webp"
@@ -55,23 +56,32 @@ func (h *ImageHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts Opti
 	var viewBox string
 	var elementCount int
 
+	var img image.Image
+
 	if isSVG {
 		format = "svg"
 		viewBox, elementCount = parseSVG(bytes.NewReader(data))
 	} else {
-		config, fmtName, err := image.DecodeConfig(bytes.NewReader(data))
+		var err error
+		img, format, err = image.Decode(bytes.NewReader(data))
 		if err == nil {
-			format = fmtName
-			width = config.Width
-			height = config.Height
+			bounds := img.Bounds()
+			width = bounds.Dx()
+			height = bounds.Dy()
 		}
 	}
 
+	chafaSuccess := false
 	if h.Runner.Available("chafa") && meta.Name != "stdin" && meta.Name != "" {
 		output, err := h.Runner.Run("chafa", meta.Name)
 		if err == nil {
 			fmt.Fprintln(out, strings.TrimRight(string(output), "\n"))
+			chafaSuccess = true
 		}
+	}
+
+	if !chafaSuccess && img != nil && !opts.NoColor && !opts.Plain {
+		renderANSIImage(out, img, opts.Width)
 	}
 
 	fmt.Fprintf(out, "File: %s\n", meta.Name)
@@ -87,6 +97,51 @@ func (h *ImageHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts Opti
 	}
 
 	return nil
+}
+
+func renderANSIImage(w io.Writer, img image.Image, termWidth int) {
+	if termWidth <= 0 {
+		termWidth = 80
+	}
+
+	bounds := img.Bounds()
+	imgW := bounds.Dx()
+	imgH := bounds.Dy()
+	if imgW == 0 || imgH == 0 {
+		return
+	}
+
+	targetW := imgW
+	// Cap the width to termWidth, minus a little margin
+	if targetW > termWidth-4 {
+		targetW = termWidth - 4
+	}
+
+	scale := float64(targetW) / float64(imgW)
+	targetH := int(float64(imgH) * scale)
+
+	if targetW <= 0 || targetH <= 0 {
+		return
+	}
+
+	dst := image.NewRGBA(image.Rect(0, 0, targetW, targetH))
+	draw.ApproxBiLinear.Scale(dst, dst.Bounds(), img, img.Bounds(), draw.Over, nil)
+
+	for y := 0; y < targetH; y += 2 {
+		for x := 0; x < targetW; x++ {
+			top := dst.RGBAAt(x, y)
+
+			var bottomR, bottomG, bottomB uint8
+			if y+1 < targetH {
+				bottom := dst.RGBAAt(x, y+1)
+				bottomR, bottomG, bottomB = bottom.R, bottom.G, bottom.B
+			}
+
+			// Use ▀ (U+2580) which renders the top half in foreground color, and bottom half in background color
+			fmt.Fprintf(w, "\x1b[38;2;%d;%d;%dm\x1b[48;2;%d;%d;%dm▀", top.R, top.G, top.B, bottomR, bottomG, bottomB)
+		}
+		fmt.Fprintf(w, "\x1b[0m\n")
+	}
 }
 
 func parseSVG(r io.Reader) (viewBox string, count int) {
