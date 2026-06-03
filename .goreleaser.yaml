@@ -32,5 +32,5 @@ changelog:
 
 release:
   github:
-    owner: manu
+    owner: orchestrator-dev
     name: asd
