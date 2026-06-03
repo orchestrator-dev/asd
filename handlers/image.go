@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/xml"
 	"fmt"
 	"image"
@@ -9,6 +10,7 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
+	"os"
 	"strings"
 
 	"asd/exec"
@@ -71,16 +73,28 @@ func (h *ImageHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts Opti
 		}
 	}
 
-	chafaSuccess := false
-	if h.Runner.Available("chafa") && meta.Name != "stdin" && meta.Name != "" {
+	renderedHighRes := false
+
+	// Attempt iTerm2 protocol first for pixel-perfect images
+	termProg := os.Getenv("TERM_PROGRAM")
+	if termProg == "iTerm.app" || termProg == "WezTerm" || termProg == "ghostty" {
+		b64 := base64.StdEncoding.EncodeToString(data)
+		// Set width to auto to fit nicely if it's too big
+		fmt.Fprintf(out, "\033]1337;File=inline=1;width=auto;preserveAspectRatio=1:%s\a\n", b64)
+		renderedHighRes = true
+	}
+
+	// Attempt chafa if available and not already rendered
+	if !renderedHighRes && h.Runner.Available("chafa") && meta.Name != "stdin" && meta.Name != "" {
 		output, err := h.Runner.Run("chafa", meta.Name)
 		if err == nil {
 			fmt.Fprintln(out, strings.TrimRight(string(output), "\n"))
-			chafaSuccess = true
+			renderedHighRes = true
 		}
 	}
 
-	if !chafaSuccess && img != nil && !opts.NoColor && !opts.Plain {
+	// Fallback to our own native ANSI block renderer
+	if !renderedHighRes && img != nil && !opts.NoColor && !opts.Plain {
 		renderANSIImage(out, img, opts.Width)
 	}
 
@@ -94,6 +108,10 @@ func (h *ImageHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts Opti
 		fmt.Fprintf(out, "Format: %s\n", format)
 		fmt.Fprintf(out, "Resolution: %dx%d px\n", width, height)
 		fmt.Fprintf(out, "Size: %d bytes\n", meta.Size)
+	}
+
+	if !renderedHighRes && !opts.NoColor && !opts.Plain {
+		fmt.Fprintf(out, "\n\x1b[90mTip: Use WezTerm, iTerm2, or Ghostty for high-resolution images.\x1b[0m\n")
 	}
 
 	return nil
