@@ -21,18 +21,35 @@ func (h *DirectoryHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts 
 		return fmt.Errorf("invalid directory path")
 	}
 
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return err
+	if opts.Flat {
+		// flat mode: just list files
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			return err
+		}
+		for _, e := range entries {
+			fmt.Fprintln(w, e.Name())
+		}
+		return nil
 	}
 
-	dirInfo, err := os.Stat(dir)
-	if err == nil {
-		h.printEntry(w, dirInfo, ".", "", false, opts)
+	dirName := filepath.Base(dir)
+	if !opts.NoColor && !opts.Plain {
+		dirName = lipgloss.NewStyle().Foreground(lipgloss.Color("39")).Render(dirName)
 	}
-	parentInfo, err := os.Stat(filepath.Dir(dir))
-	if err == nil {
-		h.printEntry(w, parentInfo, "..", "", false, opts)
+	fmt.Fprintf(w, "%s/\n", dirName)
+
+	h.printTree(w, dir, "", opts, 0)
+	return nil
+}
+
+func (h *DirectoryHandler) printTree(w io.Writer, dir string, prefix string, opts Options, depth int) {
+	if depth > 4 {
+		return // max depth 4 to prevent crazy output
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
 	}
 
 	for i, entry := range entries {
@@ -40,36 +57,56 @@ func (h *DirectoryHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts 
 		if err != nil {
 			continue
 		}
+
 		isLast := i == len(entries)-1
-		prefix := "├── "
+		pointer := "├── "
 		if isLast {
-			prefix = "└── "
+			pointer = "└── "
 		}
-		h.printEntry(w, info, entry.Name(), prefix, isLast, opts)
-	}
 
-	return nil
-}
+		name := entry.Name()
+		mode := info.Mode()
 
-func (h *DirectoryHandler) printEntry(w io.Writer, info os.FileInfo, name, prefix string, isLast bool, opts Options) {
-	mode := info.Mode()
-	size := info.Size()
-	modTime := info.ModTime().Format("Jan 02 15:04")
+		if !opts.NoColor && !opts.Plain {
+			if mode.IsDir() {
+				name = lipgloss.NewStyle().Foreground(lipgloss.Color("39")).Render(name)
+			} else if mode&os.ModeSymlink != 0 {
+				name = lipgloss.NewStyle().Foreground(lipgloss.Color("36")).Render(name)
+			} else if mode&0111 != 0 {
+				name = lipgloss.NewStyle().Foreground(lipgloss.Color("40")).Render(name)
+			} else {
+				// Regular files get a nice cyan or pink depending on extension to match the screenshot
+				ext := filepath.Ext(name)
+				switch ext {
+				case ".json", ".yaml", ".yml", ".toml", ".csv":
+					name = lipgloss.NewStyle().Foreground(lipgloss.Color("51")).Render(name)
+				case ".log", ".dat", ".txt":
+					name = lipgloss.NewStyle().Foreground(lipgloss.Color("213")).Render(name)
+				case ".go", ".js", ".py", ".rs":
+					name = lipgloss.NewStyle().Foreground(lipgloss.Color("226")).Render(name)
+				default:
+					name = lipgloss.NewStyle().Foreground(lipgloss.Color("250")).Render(name)
+				}
+			}
+		}
 
-	var uname, gname string
-	uname = "-"
-	gname = "-"
-
-	displayName := name
-	if !opts.NoColor {
+		suffix := ""
 		if mode.IsDir() {
-			displayName = lipgloss.NewStyle().Foreground(lipgloss.Color("12")).Render(name)
+			suffix = "/"
 		} else if mode&os.ModeSymlink != 0 {
-			displayName = lipgloss.NewStyle().Foreground(lipgloss.Color("14")).Render(name)
+			suffix = "@"
 		} else if mode&0111 != 0 {
-			displayName = lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Render(name)
+			suffix = "*"
+		}
+
+		fmt.Fprintf(w, "%s%s%s%s\n", prefix, pointer, name, suffix)
+
+		if mode.IsDir() {
+			extension := "│   "
+			if isLast {
+				extension = "    "
+			}
+			h.printTree(w, filepath.Join(dir, entry.Name()), prefix+extension, opts, depth+1)
 		}
 	}
-
-	fmt.Fprintf(w, "%s%s %-8s %-8s %8d %s %s\n", prefix, mode.String(), uname, gname, size, modTime, displayName)
 }
