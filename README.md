@@ -5,9 +5,9 @@
   
   <p><b>A smart universal file viewer for the modern terminal.</b></p>
   
-  [![Build Status](https://github.com/orchestrator-dev/asd/actions/workflows/ci.yml/badge.svg)](https://github.com/orchestrator-dev/asd/actions/workflows/ci.yml)
-  [![Release](https://img.shields.io/github/v/release/orchestrator-dev/asd)](https://github.com/orchestrator-dev/asd/releases)
-  [![Go Report Card](https://goreportcard.com/badge/github.com/orchestrator-dev/asd)](https://goreportcard.com/report/github.com/orchestrator-dev/asd)
+  [![Build Status](https://github.com/vsmanu/asd/actions/workflows/ci.yml/badge.svg)](https://github.com/vsmanu/asd/actions/workflows/ci.yml)
+  [![Release](https://img.shields.io/github/v/release/vsmanu/asd)](https://github.com/vsmanu/asd/releases)
+  [![Go Report Card](https://goreportcard.com/badge/github.com/vsmanu/asd)](https://goreportcard.com/report/github.com/vsmanu/asd)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 </div>
@@ -39,20 +39,20 @@ When you output more text than your terminal can fit, `asd` instantly buffers in
 
 ### Using Homebrew (macOS/Linux)
 \`\`\`bash
-brew tap orchestrator-dev/asd
+brew tap vsmanu/asd
 brew install asd
 \`\`\`
 
 ### Using Go
 Ensure you have Go `1.23` or higher.
 \`\`\`bash
-go install github.com/orchestrator-dev/asd@latest
+go install github.com/vsmanu/asd@latest
 \`\`\`
 
 ### Download Pre-built Binaries
-Head over to the [Releases](https://github.com/orchestrator-dev/asd/releases) page to download pre-built binaries for your OS and architecture (Windows, macOS, Linux).
+Head over to the [Releases](https://github.com/vsmanu/asd/releases) page to download pre-built binaries for your OS and architecture (Windows, macOS, Linux).
 
-*Note: The GitHub Actions workflows are actively compiling `v0.8.2`, so the binaries will appear on the release page momentarily!*
+*Note: The GitHub Actions workflows are actively compiling `v0.8.3`, so the binaries will appear on the release page momentarily!*
 
 ## 📖 Usage
 
@@ -101,7 +101,7 @@ theme = "dracula"
 ## 🛠 Compilation and Development
 
 \`\`\`bash
-git clone https://github.com/orchestrator-dev/asd.git
+git clone https://github.com/vsmanu/asd.git
 cd asd
 go mod download
 make build
