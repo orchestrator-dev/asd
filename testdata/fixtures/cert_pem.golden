@@ -1,8 +1,0 @@
-Subject: CN=example.com,O=Acme,ST=CA,C=US
-Issuer: CN=example.com,O=Acme,ST=CA,C=US
-Serial Number: 3a7d8c513091fd57117c923a4f1bfa7ae789f472
-Validity:
-  Not Before: 2026-06-03 21:20:46 +0000 UTC
-  Not After:  2027-06-03 21:20:46 +0000 UTC
-Public Key: RSA (2048 bits)
-SHA256 Fingerprint: 315702a681c2689eb3c116f9d3acfb8acaeb92229ec29d689d14bd2c38738081

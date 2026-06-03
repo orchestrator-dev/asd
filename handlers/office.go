@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	excelize "github.com/xuri/excelize/v2"
+	excelize excelize "github.com/xuri/excelize/v2"
 )
 
 type OfficeHandler struct{}

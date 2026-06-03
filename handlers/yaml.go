@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	yaml "gopkg.in/yaml.v3"
+
 	"bytes"
 	"fmt"
 	"io"
@@ -8,7 +10,6 @@ import (
 	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/alecthomas/chroma/v2/styles"
-	"gopkg.in/yaml.v3"
 
 	"asd/errors"
 )
@@ -37,7 +38,7 @@ func (h *YAMLHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts Optio
 	enc.SetIndent(2)
 
 	for {
-		var node yaml.Node
+		var node interface{}
 		err := dec.Decode(&node)
 		if err == io.EOF {
 			break

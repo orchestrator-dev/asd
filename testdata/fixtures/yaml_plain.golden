@@ -1,4 +1,3 @@
-# A comment
 name: world
 nested:
   val: 1
