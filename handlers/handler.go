@@ -12,6 +12,10 @@ type Options struct {
 	Theme   string
 	NoColor bool // auto-set when stdout is not a TTY
 	Width   int  // terminal width, auto-detected
+	Clean   bool // disable all decorations like headers, borders, line numbers
+	Follow  bool // tail -f mode
+	Diff    bool // side-by-side diff
+	NoPager bool // disable auto-paging
 }
 
 // FileMeta carries information about the file being handled.

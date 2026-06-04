@@ -15,6 +15,7 @@ func (nopCloser) Close() error { return nil }
 // NewWriter wraps the base writer with decorators based on Options.
 func NewWriter(w io.Writer, opts any) io.WriteCloser {
 	flat := false
+	noPager := false
 	if reflect.ValueOf(opts).Kind() == reflect.Bool {
 		flat = opts.(bool)
 	} else {
@@ -24,10 +25,14 @@ func NewWriter(w io.Writer, opts any) io.WriteCloser {
 			if flatField.IsValid() {
 				flat = flatField.Bool()
 			}
+			noPagerField := val.FieldByName("NoPager")
+			if noPagerField.IsValid() {
+				noPager = noPagerField.Bool()
+			}
 		}
 	}
 
-	if !flat {
+	if !flat && !noPager {
 		w = pager.New(w)
 		return w.(io.WriteCloser)
 	}

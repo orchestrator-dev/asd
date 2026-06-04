@@ -32,6 +32,12 @@ When you output more text than your terminal can fit, `asd` instantly buffers in
 - **Office Docs & PDF**: Automatically extracts and parses text from DOCX, XLSX, PPTX, ODT, and PDFs without you needing to extract them manually!
 - **Media**: Peeks into Audio and Video files to reveal track metadata, codecs, and durations. **Images** are rendered natively in your terminal! Enjoy pixel-perfect inline images on modern terminals like iTerm2, WezTerm, and Ghostty, or elegantly scaled true-color ANSI blocks on all standard terminals.
 - **Security**: Displays X.509 PEM/CRT properties and SSH Key parameters effortlessly.
+- **Git Integration**: Built-in gutter diffs show added, modified, and removed lines instantly!
+- **Tail/Follow Mode**: Use `asd -F <file>` to tail streaming logs with full real-time syntax highlighting.
+- **Side-by-Side Diffing**: Use `asd <file1> <file2> --diff` for a beautiful side-by-side terminal diff view.
+- **Certificate Parsing**: Peek into `.pem`, `.crt`, and `.der` files to automatically parse X.509 certificates and read their metadata (Issuer, Subject, Validity) just like `openssl x509 -text`!
+- **UI Customization**: Use `--clean` to hide headers and line numbers for clean copying, or `--no-pager` to disable auto-paging.
+- **Smart Piped Input**: Pass `curl` payloads directly into `asd`; it automatically detects the content type and highlights the piped output!
 - **Directories**: View styled `ls -la` directory trees and resolve symlinks.
 - **Hex Dump**: Safely view unknown binaries with built-in hex-dumping.
 

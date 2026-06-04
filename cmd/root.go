@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"asd/detect"
@@ -13,6 +14,7 @@ import (
 	"asd/render"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 var (
@@ -31,6 +33,23 @@ var rootCmd = &cobra.Command{
 		if opts.Theme == "" || opts.Theme == "auto" {
 			opts.Theme = "dracula"
 		}
+
+		opts.Width = 80 // fallback
+		if term.IsTerminal(int(os.Stdout.Fd())) {
+			if w, _, err := term.GetSize(int(os.Stdout.Fd())); err == nil {
+				opts.Width = w
+			}
+		} else {
+			opts.NoColor = true
+		}
+
+		if opts.Diff {
+			if len(args) != 2 {
+				return fmt.Errorf("--diff requires exactly two files")
+			}
+			return processDiff(args[0], args[1])
+		}
+
 		if len(args) == 0 {
 			stat, _ := os.Stdin.Stat()
 			if (stat.Mode() & os.ModeCharDevice) != 0 {
@@ -82,6 +101,18 @@ func processFile(filename string) error {
 		r = io.MultiReader(bytes.NewReader(header[:n]), f)
 	}
 
+	var tailCmd *exec.Cmd
+	if opts.Follow && filename != "stdin" && filename != "-" {
+		tailCmd = exec.Command("tail", "-f", "-n", "+1", filename)
+		if stdout, err := tailCmd.StdoutPipe(); err == nil {
+			if err := tailCmd.Start(); err == nil {
+				r = stdout
+				opts.NoPager = true // Disallow paging in follow mode
+				defer tailCmd.Process.Kill()
+			}
+		}
+	}
+
 	mime := detect.Pipeline(header[:n], filename)
 	ext := filepath.Ext(filename)
 
@@ -103,6 +134,25 @@ func processFile(filename string) error {
 	return handler.Render(w, r, meta, opts)
 }
 
+func processDiff(file1, file2 string) error {
+	w := render.NewWriter(os.Stdout, opts)
+	defer w.Close()
+
+	var cmd *exec.Cmd
+	// Check if delta is available
+	if err := exec.Command("delta", "--version").Run(); err == nil {
+		cmd = exec.Command("delta", "-s", file1, file2)
+	} else if err := exec.Command("git", "diff", "--no-index").Run(); err == nil || err.Error() == "exit status 1" {
+		cmd = exec.Command("git", "diff", "--no-index", "--color=always", file1, file2)
+	} else {
+		cmd = exec.Command("diff", "-y", "--color=always", file1, file2)
+	}
+
+	out, _ := cmd.CombinedOutput()
+	fmt.Fprint(w, string(out))
+	return nil
+}
+
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
@@ -113,5 +163,9 @@ func init() {
 	rootCmd.Flags().BoolVarP(&opts.Flat, "flat", "f", false, "bypass smart rendering; behave like cat")
 	rootCmd.Flags().BoolVarP(&opts.Lines, "lines", "n", false, "show line numbers (text/source only)")
 	rootCmd.Flags().BoolVarP(&opts.Plain, "plain", "p", false, "disable all color and styling")
+	rootCmd.Flags().BoolVar(&opts.Clean, "clean", false, "disable UI decorations (headers, line numbers)")
+	rootCmd.Flags().BoolVarP(&opts.Follow, "follow", "F", false, "tail/follow mode for continuous reading")
+	rootCmd.Flags().BoolVar(&opts.Diff, "diff", false, "render a side-by-side diff of two files")
+	rootCmd.Flags().BoolVar(&opts.NoPager, "no-pager", false, "disable auto-paging")
 	rootCmd.Flags().StringVar(&opts.Theme, "theme", "", "chroma highlight theme (default: auto)")
 }
