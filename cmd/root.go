@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"asd/detect"
 	"asd/handlers"
@@ -115,6 +116,12 @@ func processFile(filename string) error {
 
 	mime := detect.Pipeline(header[:n], filename)
 	ext := filepath.Ext(filename)
+
+	// Heuristic: If it's in a log directory or named log, treat it as a log
+	baseName := strings.ToLower(filepath.Base(filename))
+	if strings.Contains(baseName, "log") || strings.Contains(filename, "/var/log/") {
+		ext = ".log"
+	}
 
 	handler := globalReg.Dispatch(mime, ext)
 

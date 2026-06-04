@@ -34,6 +34,7 @@ When you output more text than your terminal can fit, `asd` instantly buffers in
 - **Security**: Displays X.509 PEM/CRT properties and SSH Key parameters effortlessly.
 - **Git Integration**: Built-in gutter diffs show added, modified, and removed lines instantly!
 - **Tail/Follow Mode**: Use `asd -F <file>` to tail streaming logs with full real-time syntax highlighting.
+- **Log Formatting**: Intelligent, on-the-fly parsing and beautiful colorization of log files (`.log`, `/var/log/*`, etc) formatting timestamps and log levels neatly!
 - **Side-by-Side Diffing**: Use `asd <file1> <file2> --diff` for a beautiful side-by-side terminal diff view.
 - **Certificate Parsing**: Peek into `.pem`, `.crt`, and `.der` files to automatically parse X.509 certificates and read their metadata (Issuer, Subject, Validity) just like `openssl x509 -text`!
 - **UI Customization**: Use `--clean` to hide headers and line numbers for clean copying, or `--no-pager` to disable auto-paging.
