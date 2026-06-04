@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -35,15 +37,49 @@ func (h *DirectoryHandler) Render(w io.Writer, r io.Reader, meta FileMeta, opts 
 
 	dirName := filepath.Base(dir)
 	if !opts.NoColor && !opts.Plain {
-		dirName = lipgloss.NewStyle().Foreground(lipgloss.Color("39")).Render(dirName)
+		dirName = lipgloss.NewStyle().Foreground(lipgloss.Color("39")).Bold(true).Render("📁 " + dirName)
+	} else {
+		dirName = "📁 " + dirName
 	}
 	fmt.Fprintf(w, "%s/\n", dirName)
 
-	h.printTree(w, dir, "", opts, 0)
+	stats := &dirStats{}
+	h.printTree(w, dir, "", opts, 0, stats)
+
+	// Dashboard Summary
+	if !opts.Clean {
+		fmt.Fprintln(w)
+		fmt.Fprintln(w, strings.Repeat("━", 40))
+		fmt.Fprintf(w, "📊 Dashboard: %s\n", dir)
+		fmt.Fprintf(w, "   Files: %d | Directories: %d\n", stats.files, stats.dirs)
+
+		// Try Git
+		if out, err := exec.Command("git", "-C", dir, "branch", "--show-current").Output(); err == nil && len(out) > 0 {
+			branch := strings.TrimSpace(string(out))
+			fmt.Fprintf(w, "   Git Branch: %s\n", branch)
+			if status, err := exec.Command("git", "-C", dir, "status", "-s").Output(); err == nil {
+				lines := strings.Split(strings.TrimSpace(string(status)), "\n")
+				modified := 0
+				for _, l := range lines {
+					if len(l) > 0 {
+						modified++
+					}
+				}
+				fmt.Fprintf(w, "   Git Status: %d modified/untracked files\n", modified)
+			}
+		}
+		fmt.Fprintln(w, strings.Repeat("━", 40))
+	}
+
 	return nil
 }
 
-func (h *DirectoryHandler) printTree(w io.Writer, dir string, prefix string, opts Options, depth int) {
+type dirStats struct {
+	files int
+	dirs  int
+}
+
+func (h *DirectoryHandler) printTree(w io.Writer, dir string, prefix string, opts Options, depth int, stats *dirStats) {
 	if depth > 4 {
 		return // max depth 4 to prevent crazy output
 	}
@@ -56,6 +92,12 @@ func (h *DirectoryHandler) printTree(w io.Writer, dir string, prefix string, opt
 		info, err := entry.Info()
 		if err != nil {
 			continue
+		}
+
+		if info.IsDir() {
+			stats.dirs++
+		} else {
+			stats.files++
 		}
 
 		isLast := i == len(entries)-1
@@ -75,7 +117,6 @@ func (h *DirectoryHandler) printTree(w io.Writer, dir string, prefix string, opt
 			} else if mode&0111 != 0 {
 				name = lipgloss.NewStyle().Foreground(lipgloss.Color("40")).Render(name)
 			} else {
-				// Regular files get a nice cyan or pink depending on extension to match the screenshot
 				ext := filepath.Ext(name)
 				switch ext {
 				case ".json", ".yaml", ".yml", ".toml", ".csv":
@@ -106,7 +147,7 @@ func (h *DirectoryHandler) printTree(w io.Writer, dir string, prefix string, opt
 			if isLast {
 				extension = "    "
 			}
-			h.printTree(w, filepath.Join(dir, entry.Name()), prefix+extension, opts, depth+1)
+			h.printTree(w, filepath.Join(dir, entry.Name()), prefix+extension, opts, depth+1, stats)
 		}
 	}
 }

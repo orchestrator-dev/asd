@@ -16,6 +16,7 @@ type Options struct {
 	Follow  bool // tail -f mode
 	Diff    bool // side-by-side diff
 	NoPager bool // disable auto-paging
+	Explain bool // use local AI (Ollama) to explain the file
 }
 
 // FileMeta carries information about the file being handled.

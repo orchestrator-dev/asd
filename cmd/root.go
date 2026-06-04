@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -78,10 +79,12 @@ func processFile(filename string) error {
 	var f *os.File
 	var err error
 
+	var isHTTP = strings.HasPrefix(filename, "http://") || strings.HasPrefix(filename, "https://")
+
 	if filename == "-" {
 		f = os.Stdin
 		filename = "stdin"
-	} else {
+	} else if !isHTTP {
 		f, err = os.Open(filename)
 		if err != nil {
 			return err
@@ -89,17 +92,50 @@ func processFile(filename string) error {
 		defer f.Close()
 	}
 
-	stat, err := f.Stat()
-	if err != nil {
-		return err
+	var fileSize int64
+	if f != nil {
+		stat, err := f.Stat()
+		if err == nil {
+			fileSize = stat.Size()
+		}
 	}
 
 	header := make([]byte, 512)
-	n, _ := f.Read(header)
+	n := 0
+	if f != nil {
+		n, _ = f.Read(header)
+	}
 
 	var r io.Reader = f
-	if _, err := f.Seek(0, 0); err != nil {
-		r = io.MultiReader(bytes.NewReader(header[:n]), f)
+	var filenameForMime = filename
+
+	if f != nil {
+		if _, err := f.Seek(0, 0); err != nil {
+			r = io.MultiReader(bytes.NewReader(header[:n]), f)
+		}
+	} else if isHTTP {
+		// HTTP Fetching
+		resp, err := http.Get(filename)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		// Read a snippet for mime detection
+		header = make([]byte, 512)
+		n, _ = io.ReadFull(resp.Body, header)
+		r = io.MultiReader(bytes.NewReader(header[:n]), resp.Body)
+
+		// Try to use Content-Type from headers
+		contentType := resp.Header.Get("Content-Type")
+		if contentType != "" {
+			parts := strings.Split(contentType, ";")
+			mimeType := strings.TrimSpace(parts[0])
+			subtypeParts := strings.Split(mimeType, "/")
+			if len(subtypeParts) == 2 {
+				filenameForMime = "download." + subtypeParts[1]
+			}
+		}
 	}
 
 	var tailCmd *exec.Cmd
@@ -114,24 +150,31 @@ func processFile(filename string) error {
 		}
 	}
 
-	mime := detect.Pipeline(header[:n], filename)
-	ext := filepath.Ext(filename)
+	mime := detect.Pipeline(header[:n], filenameForMime)
+	ext := filepath.Ext(filenameForMime)
 
 	// Heuristic: If it's in a log directory or named log, treat it as a log
-	baseName := strings.ToLower(filepath.Base(filename))
-	if strings.Contains(baseName, "log") || strings.Contains(filename, "/var/log/") {
+	baseName := strings.ToLower(filepath.Base(filenameForMime))
+	if strings.Contains(baseName, "log") || strings.Contains(filenameForMime, "/var/log/") {
 		ext = ".log"
 	}
 
 	handler := globalReg.Dispatch(mime, ext)
 
 	meta := handlers.FileMeta{
-		Name: filename,
-		Size: stat.Size(),
+		Name: filenameForMime,
+		Size: fileSize,
 	}
 
 	w := render.NewWriter(os.Stdout, opts)
 	defer w.Close()
+
+	if opts.Explain && mime != "inode/directory" {
+		if data, err := io.ReadAll(r); err == nil {
+			explainFile(w, data, filenameForMime, opts.Theme)
+			r = bytes.NewReader(data) // Restore reader
+		}
+	}
 
 	if opts.Flat {
 		_, err = io.Copy(w, r)
@@ -174,5 +217,6 @@ func init() {
 	rootCmd.Flags().BoolVarP(&opts.Follow, "follow", "F", false, "tail/follow mode for continuous reading")
 	rootCmd.Flags().BoolVar(&opts.Diff, "diff", false, "render a side-by-side diff of two files")
 	rootCmd.Flags().BoolVar(&opts.NoPager, "no-pager", false, "disable auto-paging")
+	rootCmd.Flags().BoolVar(&opts.Explain, "explain", false, "use local AI (Ollama) to explain the file")
 	rootCmd.Flags().StringVar(&opts.Theme, "theme", "", "chroma highlight theme (default: auto)")
 }

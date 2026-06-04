@@ -18,6 +18,8 @@ func main() {
 	reg.Register(&handlers.MarkdownHandler{})
 	reg.Register(&handlers.CertHandler{})
 	reg.Register(&handlers.LogHandler{})
+	reg.Register(&handlers.SQLiteHandler{})
+	reg.Register(&handlers.JupyterHandler{})
 	// TextHandler must come AFTER specific text handlers (e.g. CSV, Markdown, Cert)
 	reg.Register(&handlers.TextHandler{})
 	reg.Register(&handlers.ImageHandler{Runner: &exec.OSExecRunner{}})
