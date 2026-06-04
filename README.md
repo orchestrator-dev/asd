@@ -19,7 +19,7 @@
 When you output more text than your terminal can fit, `asd` instantly buffers into an interactive pager. If you pipe the output to another tool, it smartly defaults back to raw bytes (behaving exactly like `cat`).
 
 <div align="center">
-  <img src="assets/screenshot.png" alt="asd terminal screenshot" />
+  <img src="assets/demo.gif" alt="asd terminal demo" />
 </div>
 
 ## 🚀 Features
