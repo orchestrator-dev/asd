@@ -34,3 +34,17 @@ release:
   github:
     owner: orchestrator-dev
     name: asd
+
+brews:
+  - name: asd
+    repository:
+      owner: orchestrator-dev
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: orchestrator-dev-bot
+      email: bot@orchestrator.dev
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    homepage: "https://github.com/orchestrator-dev/asd"
+    description: "A smart universal file viewer for the modern terminal"
+    license: "MIT"
